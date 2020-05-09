@@ -4,6 +4,7 @@ from sqlalchemy import create_engine, sql
 from Cryptodome.Cipher import Salsa20
 from cryptography.fernet import Fernet
 from collections import namedtuple
+import hashlib
 
 Keeper = namedtuple("Keeper", ['phrase', 'message'])
 
@@ -27,10 +28,13 @@ def new_secret():
         result = conn \
             .execute(query, phrase=generate_password_hash(phrase), secret=cipher.encrypt(str.encode(secret))) \
             .fetchone()[0]
-    return jsonify(data=result), 201
+        secret_key = hashlib.sha256(str.encode(str(result))).hexdigest()
+        upd = sql.text("UPDATE Secret.Storage SET SecretKey = :skey WHERE StorageId = :id")
+        conn.execute(upd, skey=secret_key, id=result)
+    return jsonify(data=secret_key), 201
 
 
-@app.route('/secrets/<int:secret_key>', methods=['GET'])
+@app.route('/secrets/<secret_key>', methods=['GET'])
 def get_secret(secret_key):
     values = request.get_json()
     phrase = values.get("phrase")

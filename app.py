@@ -1,10 +1,10 @@
 from flask import Flask, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import create_engine, sql
-from Cryptodome.Cipher import Salsa20
 from cryptography.fernet import Fernet
 from collections import namedtuple
 import hashlib
+import threading
 
 Keeper = namedtuple("Keeper", ['phrase', 'message'])
 
@@ -17,6 +17,7 @@ db = create_engine(app.config['DATABASE_URI'])
 def new_secret():
     values = request.get_json()
     secret = values.get("secret")
+    delete_date = values.get("delete_date")
     if secret is None:
         return {}, 400
     phrase = values.get("phrase")
@@ -24,9 +25,10 @@ def new_secret():
         return {}, 400
     with db.begin() as conn:
         cipher = Fernet(app.config['SECRET_KEY'])
-        query = sql.text("SELECT Secret.generate_secret(:phrase, :secret)")
+        query = sql.text("SELECT Secret.generate_secret(:phrase, :secret, :delete_date)")
         result = conn \
-            .execute(query, phrase=generate_password_hash(phrase), secret=cipher.encrypt(str.encode(secret))) \
+            .execute(query, phrase=generate_password_hash(
+                phrase), secret=cipher.encrypt(str.encode(secret)), delete_date=delete_date) \
             .fetchone()[0]
         secret_key = hashlib.sha256(str.encode(str(result))).hexdigest()
         upd = sql.text("UPDATE Secret.Storage SET SecretKey = :skey WHERE StorageId = :id")

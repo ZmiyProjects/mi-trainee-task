@@ -5,12 +5,17 @@ from cryptography.fernet import Fernet
 from collections import namedtuple
 import hashlib
 import threading
+from typing import Dict
+from datetime import datetime, timedelta
+from time import sleep
+from manager import DeleteManager
 
 Keeper = namedtuple("Keeper", ['phrase', 'message'])
 
 app = Flask(__name__)
 app.config.from_object('config.PostgresConfig')
 db = create_engine(app.config['DATABASE_URI'])
+db_manager = DeleteManager(db)
 
 
 @app.route('/generate', methods=['POST'])
@@ -23,16 +28,8 @@ def new_secret():
     phrase = values.get("phrase")
     if phrase is None:
         return {}, 400
-    with db.begin() as conn:
-        cipher = Fernet(app.config['SECRET_KEY'])
-        query = sql.text("SELECT Secret.generate_secret(:phrase, :secret, :delete_date)")
-        result = conn \
-            .execute(query, phrase=generate_password_hash(
-                phrase), secret=cipher.encrypt(str.encode(secret)), delete_date=delete_date) \
-            .fetchone()[0]
-        secret_key = hashlib.sha256(str.encode(str(result))).hexdigest()
-        upd = sql.text("UPDATE Secret.Storage SET SecretKey = :skey WHERE StorageId = :id")
-        conn.execute(upd, skey=secret_key, id=result)
+    cipher = Fernet(app.config['SECRET_KEY'])
+    db_manager.add(secret, phrase, delete_date, cipher)
     return jsonify(data=secret_key), 201
 
 

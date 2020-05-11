@@ -1,13 +1,3 @@
-DROP DATABASE IF EXISTS secrets;
-
-DROP USER IF EXISTS secret_user;
-
-CREATE DATABASE secrets WITH OWNER postgres;
-
-CREATE USER secret_user WITH PASSWORD 'pass';
-
-\connect secrets;
-
 CREATE SCHEMA Secret;
 
 CREATE TABLE Secret.Storage(

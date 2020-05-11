@@ -29,7 +29,7 @@ def new_secret():
     if phrase is None:
         return {}, 400
     cipher = Fernet(app.config['SECRET_KEY'])
-    db_manager.add(secret, phrase, delete_date, cipher)
+    secret_key = db_manager.add(secret, phrase, delete_date, cipher, db)
     return jsonify(data=secret_key), 201
 
 

@@ -9,6 +9,7 @@ from typing import Dict
 from datetime import datetime, timedelta
 from time import sleep
 from manager import DeleteManager
+from validators import interval_before_delete
 
 Keeper = namedtuple("Keeper", ['phrase', 'message'])
 
@@ -16,20 +17,29 @@ app = Flask(__name__)
 app.config.from_object('config.PostgresConfig')
 db = create_engine(app.config['DATABASE_URI'])
 db_manager = DeleteManager(db)
+cipher = Fernet(app.config['SECRET_KEY'])
 
 
 @app.route('/generate', methods=['POST'])
 def new_secret():
     values = request.get_json()
     secret = values.get("secret")
-    delete_date = values.get("delete_date")
     if secret is None:
-        return {}, 400
+        return jsonify(err_message='Секрет не задан!'), 400
     phrase = values.get("phrase")
     if phrase is None:
-        return {}, 400
-    cipher = Fernet(app.config['SECRET_KEY'])
-    secret_key = db_manager.add(secret, phrase, delete_date, cipher, db)
+        return jsonify(err_message='Не указана фразу-ключ!'), 400
+    before_delete = values.get("before_date")
+    try:
+        if before_delete is not None:
+            days = before_delete.get('days', 0)
+            hours = before_delete.get('hours', 0)
+            minutes = before_delete.get('minutes', 0)
+            seconds = before_delete.get('seconds', 0)
+            before_delete = interval_before_delete(days, hours, minutes, seconds)
+    except ValueError:
+        return jsonify(err_message='Некорректная дата удаления!'), 400
+    secret_key = db_manager.add(secret, phrase, before_delete, cipher, db)
     return jsonify(data=secret_key), 201
 
 
@@ -45,7 +55,6 @@ def get_secret(secret_key):
         return jsonify(data="указанный ключ отсутствует!"), 400
     result = Keeper(*result)
     if check_password_hash(result.phrase, phrase):
-        cipher = Fernet(app.config['SECRET_KEY'])
         with db.begin() as conn:
             conn.execute(sql.text("DELETE FROM Secret.Storage WHERE SecretKey = :id"), id=secret_key)
         return jsonify(data=cipher.decrypt(bytes(result.message)).decode("utf-8")), 200

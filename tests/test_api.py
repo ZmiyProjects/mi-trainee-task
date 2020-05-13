@@ -6,15 +6,9 @@ import json
 
 RequestResult = namedtuple("RequestResult", ["status", "message"])
 
-<<<<<<< HEAD
+
 with open("test_config.json") as  reader:
     conf = json.load(reader)
-=======
-args = ArgumentParser()
-args.add_argument('-ho', '--host', type=str)
-args.add_argument('-p', '--post', type=str)
-address = args.parse_args(sys.argv[1:])
->>>>>>> master
 
 server_url = f'http://{conf["host"]}:{conf["port"]}'
 

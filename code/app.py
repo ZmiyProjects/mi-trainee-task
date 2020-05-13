@@ -12,6 +12,7 @@ import socket
 from time import sleep
 from manager import DeleteManager
 from validators import interval_before_delete
+import http.client
 
 Keeper = namedtuple("Keeper", ['phrase', 'message'])
 
@@ -64,13 +65,13 @@ def get_secret(secret_key):
     query = sql.text("SELECT phrase, SecretMessage FROM Secret.Storage WHERE SecretKey = :id")
     result = db.execute(query, id=secret_key).fetchone()
     if result is None:
-        return jsonify(data="указанный ключ отсутствует!"), 400
+        return jsonify(err_message="указанный ключ отсутствует!"), 400
     result = Keeper(*result)
     if check_password_hash(result.phrase, phrase):
         with db.begin() as conn:
             conn.execute(sql.text("DELETE FROM Secret.Storage WHERE SecretKey = :id"), id=secret_key)
         return jsonify(data=cipher.decrypt(bytes(result.message)).decode("utf-8")), 200
-    return {}, 403
+    return jsonify(err_message='неверная кодовая фраза!'), 403
 
 
 if __name__ == '__main__':

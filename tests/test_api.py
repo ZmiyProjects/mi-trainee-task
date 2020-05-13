@@ -1,16 +1,16 @@
 import requests
-import unittest
+import pytest
 from collections import namedtuple
 from time import sleep
 import json
 
 RequestResult = namedtuple("RequestResult", ["status", "message"])
 
-
-with open("test_config.json") as  reader:
-    conf = json.load(reader)
-
-server_url = f'http://{conf["host"]}:{conf["port"]}'
+@pytest.fixture
+def server_params():
+    with open("test_config.json") as  reader:
+        conf = json.load(reader)
+    return f'http://{conf["host"]}:{conf["port"]}'
 
 
 def simple_post(url: str, secret: str, phrase: str, **kwargs):

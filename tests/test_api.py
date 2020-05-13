@@ -2,17 +2,14 @@ import requests
 import pytest
 from collections import namedtuple
 from time import sleep
-from argparse import ArgumentParser
-import sys
+import json
 
 RequestResult = namedtuple("RequestResult", ["status", "message"])
 
-args = ArgumentParser()
-args.add_argument('-h', '--host', type=str)
-args.add_argument('-p', '--post', type=str)
-address = args.parse_args(sys.argv[1:])
+with open("test_config.json") as  reader:
+    conf = json.load(reader)
 
-server_url = f'http://{address.host}:{address.port}'
+server_url = f'http://{conf["host"]}:{conf["port"]}'
 
 
 def simple_post(url: str, secret: str, phrase: str, **kwargs):

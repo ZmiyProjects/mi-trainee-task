@@ -5,19 +5,18 @@ services:
     restart: always
     image: postgres:12
     volumes:
-      - ./create_db.sql:/docker-entrypoint-initdb.d/create_db.sql
+      - ./database/create_db.sql:/docker-entrypoint-initdb.d/create_db.sql
     environment:
-      - POSTGRES_DB=secrets
-      - POSTGRES_USER=secret_user
+      - POSTGRES_DB=secret_db
+      - POSTGRES_USER=secret_db_user
       - POSTGRES_PASSWORD=pass
 
+
   code:
-    restart: always
     build: .
-    command: python3 code/app.py
     environment:
-      - POSTGRES_DB=secrets
-      - POSTGRES_USER=secret_user
+      - POSTGRES_DB=secret_db
+      - POSTGRES_USER=secret_db_user
       - POSTGRES_PASSWORD=pass
     volumes:
       - .:/code
@@ -25,3 +24,4 @@ services:
       - "5000:5000"
     depends_on:
       - db
+    command: python3 code/app.py

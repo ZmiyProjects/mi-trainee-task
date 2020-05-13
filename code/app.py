@@ -7,11 +7,23 @@ import hashlib
 import threading
 from typing import Dict
 from datetime import datetime, timedelta
+import os
+import socket
 from time import sleep
 from manager import DeleteManager
 from validators import interval_before_delete
 
 Keeper = namedtuple("Keeper", ['phrase', 'message'])
+
+so = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+while True:
+    try:
+        so.connect(('db', 5432))
+        so.close()
+        break
+    except socket.error:
+        sleep(1)
+
 
 app = Flask(__name__)
 app.config.from_object('config.PostgresConfig')
@@ -29,7 +41,7 @@ def new_secret():
     phrase = values.get("phrase")
     if phrase is None:
         return jsonify(err_message='Не указана фразу-ключ!'), 400
-    before_delete = values.get("before_date")
+    before_delete = values.get("before_delete")
     try:
         if before_delete is not None:
             days = before_delete.get('days', 0)
@@ -39,7 +51,7 @@ def new_secret():
             before_delete = interval_before_delete(days, hours, minutes, seconds)
     except ValueError:
         return jsonify(err_message='Некорректная дата удаления!'), 400
-    secret_key = db_manager.add(secret, phrase, before_delete, cipher, db)
+    secret_key = db_manager.add(secret, phrase, cipher, db, before_delete)
     return jsonify(data=secret_key), 201
 
 

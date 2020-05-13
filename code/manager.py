@@ -2,14 +2,15 @@ import threading
 from typing import Dict
 from datetime import datetime, timedelta
 from time import sleep
-from sqlalchemy import sql, Engine
+import sqlalchemy
+from sqlalchemy import sql
 from werkzeug.security import generate_password_hash, check_password_hash
 from cryptography.fernet import Fernet
 import hashlib
 
 
 class DeleteManager:
-    def __init__(self, engine: Engine):
+    def __init__(self, engine: sqlalchemy.engine):
         """
         Data structure for adding, tracking and deleting secrets
         :param engine: sqlalchemy.Engine
@@ -19,8 +20,9 @@ class DeleteManager:
         self.thread = threading.Thread(target=self._next_target, args=(engine,))
         self.thread.start()
         self.is_empty = True
+        self._delete(engine)
 
-    def add(self, secret: str, phrase: str, cipher: Fernet, engine: Engine, delete_date: None) -> str:
+    def add(self, secret: str, phrase: str, cipher: Fernet, engine: sqlalchemy.engine, delete_date: None) -> str:
         """
         Adding new secret to database
         :param secret: secret's text
@@ -49,7 +51,7 @@ class DeleteManager:
             conn.execute(upd, skey=secret_key, id=result)
         return secret_key
 
-    def _next_target(self, engine: Engine) -> None:
+    def _next_target(self, engine: sqlalchemy.engine) -> None:
         """
         Определить следующее время удаления секрета, как
         """
@@ -70,7 +72,7 @@ class DeleteManager:
         self._next_target(engine)
 
     @staticmethod
-    def _delete(engine: Engine) -> None:
+    def _delete(engine: sqlalchemy.engine) -> None:
         with engine.begin() as conn:
             query = sql.text("DELETE FROM Secret.Storage WHERE DeleteDate <= CURRENT_TIMESTAMP")
             conn.execute(query)

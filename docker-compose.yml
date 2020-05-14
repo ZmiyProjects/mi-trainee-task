@@ -11,7 +11,6 @@ services:
       - POSTGRES_USER=secret_db_user
       - POSTGRES_PASSWORD=pass
 
-
   code:
     build: .
     environment:
@@ -21,7 +20,7 @@ services:
     volumes:
       - .:/code
     ports:
-      - "5000:5000"
+      - "8080:8080"
     depends_on:
       - db
     command: python3 code/app.py

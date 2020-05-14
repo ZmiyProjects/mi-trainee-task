@@ -4,6 +4,7 @@
 
 ```bash
 git clone https://github.com/ZmiyProjects/mi-trainee-task
+cd mi-trainee-task/
 sudo docker-compose up
 ```
 

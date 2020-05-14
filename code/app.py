@@ -61,7 +61,7 @@ def get_secret(secret_key):
     values = request.get_json()
     phrase = values.get("phrase")
     if phrase is None:
-        return {}, 400
+        return jsonify(err_message="Некорректный json на входе!"), 400
     query = sql.text("SELECT phrase, SecretMessage FROM Secret.Storage WHERE SecretKey = :id")
     result = db.execute(query, id=secret_key).fetchone()
     if result is None:

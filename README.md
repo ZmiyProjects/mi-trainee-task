@@ -11,15 +11,13 @@ sudo docker-compose up
 
 Для запуска понадобится виртуальное окружение python3.7 с установленными модулями pytest и request
 
+```sh
 cd tests/
-
 python3.7 -m venv venv
-
 source venv/bin/activate
-
 pip install -r requirements.txt
-
 pytest
+```
 
 Файл test_config.json содержит конфигурацию (хост и порт) для запуска тестов, по умолчанию это:
 

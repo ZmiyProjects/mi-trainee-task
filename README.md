@@ -8,7 +8,7 @@ cd mi-trainee-task/
 sudo docker-compose up --build -d
 ```
 
-После этого сервис можно запкстить выполнив
+После этого сервис можно запyстить выполнив
 ```sh
 sudo docker-compose up
 ```

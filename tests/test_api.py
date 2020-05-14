@@ -71,7 +71,7 @@ def test_delete_date(server):
     assert result.message == "Некорректная дата удаления!"
 
 
-def test_del_after_get():
+def test_del_after_get(server):
     """
     Попытка доступа к удаленному секрету
     """
@@ -88,6 +88,24 @@ def test_del_after_get():
     after_delete = requests.get(f'{server()}/secrets/{result.message}', json={"phrase": "my secret key"})
     assert after_delete.status_code == 400
     assert after_delete.json()['err_message'] == "указанный ключ отсутствует!"
+
+
+# В некоторых случаях удаление занимает больше времени и тест заверщается с ошибкой
+# def test_del_by_timer(server):
+#     """
+#     Проверка удаления по таймеру
+#     """
+#     result = simple_post(
+#         f'{server()}/generate',
+#         "Some message",
+#         "my secret key",
+#         seconds=20
+#     )
+#     assert result.status == 201
+#     sleep(25)
+#     after_delete = requests.get(f'{server()}/secrets/{result.message}', json={"phrase": "my secret key"})
+#     assert after_delete.status_code == 400
+#     assert after_delete.json()['err_message'] == "указанный ключ отсутствует!"
 
 
 def test_wrong_phrase(server):

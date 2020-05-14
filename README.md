@@ -2,9 +2,14 @@
 
 Скопировать на локальное устройство и запустить контейнер в корневой директории проекта:
 
-```bash
+```sh
 git clone https://github.com/ZmiyProjects/mi-trainee-task
 cd mi-trainee-task/
+sudo docker-compose up --build -d
+```
+
+После этого сервис можно запкстить выполнив
+```sh
 sudo docker-compose up
 ```
 

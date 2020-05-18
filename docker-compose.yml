@@ -2,25 +2,17 @@ version: '3'
 
 services:
   db:
-    restart: always
     image: postgres:12
     volumes:
       - ./database/create_db.sql:/docker-entrypoint-initdb.d/create_db.sql
-    environment:
-      - POSTGRES_DB=secret_db
-      - POSTGRES_USER=secret_db_user
-      - POSTGRES_PASSWORD=pass
+    env_file: ./database/.env
 
   code:
     build: .
-    environment:
-      - POSTGRES_DB=secret_db
-      - POSTGRES_USER=secret_db_user
-      - POSTGRES_PASSWORD=pass
     volumes:
       - .:/code
     ports:
       - "8080:8080"
     depends_on:
       - db
-    command: python3 code/app.py
+    command: python3 code/waiter.py

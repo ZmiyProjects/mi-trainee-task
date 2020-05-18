@@ -1,3 +1,8 @@
+import os
+import sys
+
+sys.path.append(os.getcwd() + '/code')
+
 from flask import Flask, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import create_engine, sql
@@ -5,32 +10,21 @@ from cryptography.fernet import Fernet
 from collections import namedtuple
 import hashlib
 import threading
-from typing import Dict
 from datetime import datetime, timedelta
-import os
+
 import socket
 from time import sleep
-from manager import DeleteManager
-from validators import interval_before_delete
-import http.client
+from my_moduler import manager
+from my_moduler import DeleteManager, interval_before_delete
+
 
 Keeper = namedtuple("Keeper", ['phrase', 'message'])
 
-so = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-while True:
-    try:
-        so.connect(('db', 5432))
-        so.close()
-        break
-    except socket.error:
-        sleep(1)
-
-
 app = Flask(__name__)
-app.config.from_object('config.PostgresConfig')
+app.config.from_object('config.Config')
 db = create_engine(app.config['DATABASE_URI'])
-db_manager = DeleteManager(db)
 cipher = Fernet(app.config['SECRET_KEY'])
+db_manager = DeleteManager(db)
 
 
 @app.route('/generate', methods=['POST'])

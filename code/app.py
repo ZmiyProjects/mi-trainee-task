@@ -1,8 +1,5 @@
 import os
 import sys
-
-sys.path.append(os.getcwd() + '/code')
-
 from flask import Flask, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import create_engine, sql
@@ -16,6 +13,7 @@ import socket
 from time import sleep
 from my_moduler import manager
 from my_moduler import DeleteManager, interval_before_delete
+sys.path.append(os.getcwd() + '/code')
 
 
 Keeper = namedtuple("Keeper", ['phrase', 'message'])
